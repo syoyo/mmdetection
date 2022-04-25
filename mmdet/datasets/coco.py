@@ -489,7 +489,8 @@ class CocoDataset(CustomDataset):
                     # from https://github.com/facebookresearch/detectron2/
                     precisions = cocoEval.eval['precision']
                     # precision: (iou, recall, cls, area range, max dets)
-                    assert len(self.cat_ids) == precisions.shape[2]
+                    print(precisions.shape)
+                    assert len(self.cat_ids) == precisions.shape[2], f"{len(self.cat_ids)} vs {precisions.shape[2]}"
 
                     results_per_category = []
                     for idx, catId in enumerate(self.cat_ids):

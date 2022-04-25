@@ -1,3 +1,7 @@
+"""
+This code is based on the following file:
+https://github.com/tztztztztz/eqlv2/blob/master/mmdet/datasets/builder.py
+"""
 import copy
 import platform
 import random
@@ -29,15 +33,11 @@ def _concat_dataset(cfg, default_args=None):
     img_prefixes = cfg.get('img_prefix', None)
     seg_prefixes = cfg.get('seg_prefix', None)
     proposal_files = cfg.get('proposal_file', None)
-    separate_eval = cfg.get('separate_eval', True)
 
     datasets = []
     num_dset = len(ann_files)
     for i in range(num_dset):
         data_cfg = copy.deepcopy(cfg)
-        # pop 'separate_eval' since it is not a valid key for common datasets.
-        if 'separate_eval' in data_cfg:
-            data_cfg.pop('separate_eval')
         data_cfg['ann_file'] = ann_files[i]
         if isinstance(img_prefixes, (list, tuple)):
             data_cfg['img_prefix'] = img_prefixes[i]
@@ -47,24 +47,26 @@ def _concat_dataset(cfg, default_args=None):
             data_cfg['proposal_file'] = proposal_files[i]
         datasets.append(build_dataset(data_cfg, default_args))
 
-    return ConcatDataset(datasets, separate_eval)
+    return ConcatDataset(datasets)
 
 
 def build_dataset(cfg, default_args=None):
     from .dataset_wrappers import (ConcatDataset, RepeatDataset,
                                    ClassBalancedDataset)
+    from .class_balance_dataset_wrapper import CASDataset
+    from .max_iter_dataset_wrapper import MaxIterationDataset
     if isinstance(cfg, (list, tuple)):
         dataset = ConcatDataset([build_dataset(c, default_args) for c in cfg])
-    elif cfg['type'] == 'ConcatDataset':
-        dataset = ConcatDataset(
-            [build_dataset(c, default_args) for c in cfg['datasets']],
-            cfg.get('separate_eval', True))
     elif cfg['type'] == 'RepeatDataset':
         dataset = RepeatDataset(
             build_dataset(cfg['dataset'], default_args), cfg['times'])
     elif cfg['type'] == 'ClassBalancedDataset':
         dataset = ClassBalancedDataset(
-            build_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])
+            build_dataset(cfg['dataset'], default_args), cfg['oversample_thr'], cfg.get('repeat_mode', 'ceil'))
+    elif cfg['type'] == 'CASDataset':
+        dataset = CASDataset(build_dataset(cfg['dataset'], default_args), cfg['max_iter'])
+    elif cfg['type'] == 'MaxIterationDataset':
+        dataset = MaxIterationDataset(build_dataset(cfg['dataset'], default_args), cfg['max_iter'])
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
     else:
@@ -106,11 +108,11 @@ def build_dataloader(dataset,
         # DistributedGroupSampler will definitely shuffle the data to satisfy
         # that images on each GPU are in the same group
         if shuffle:
-            sampler = DistributedGroupSampler(
-                dataset, samples_per_gpu, world_size, rank, seed=seed)
+            sampler = DistributedGroupSampler(dataset, samples_per_gpu,
+                                              world_size, rank)
         else:
             sampler = DistributedSampler(
-                dataset, world_size, rank, shuffle=False, seed=seed)
+                dataset, world_size, rank, shuffle=False)
         batch_size = samples_per_gpu
         num_workers = workers_per_gpu
     else:

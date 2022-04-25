@@ -1,3 +1,22 @@
+This software was developed by the National Diet Library under contract to Morpho AI Solutions, Inc.
+This software is largely based on the following repositories.
+
+- [open-mmlab/mmdetection](https://github.com/open-mmlab/mmdetection)
+
+The following files are also based on [eqlv2](https://github.com/tztztztztz/eqlv2)
+
+- [mmdet/core/post_processing/bbox_nms.py](mmdet/core/post_processing/bbox_nms.py)
+- [mmdet/core/post_processing/merge_augs.py](mmdet/core/post_processing/merge_augs.py)
+- [mmdet/datasets/builder.py](mmdet/datasets/builder.py)
+- [mmdet/datasets/class_balance_dataset_wrapper.py](mmdet/datasets/class_balance_dataset_wrapper.py)
+- [mmdet/datasets/max_iter_dataset_wrapper.py](mmdet/datasets/max_iter_dataset_wrapper.py)
+- [mmdet/models/losses/eql.py](mmdet/models/losses/eql.py)
+- [mmdet/models/losses/eqlv2.py](mmdet/models/losses/eqlv2.py)
+- [mmdet/models/losses/group_softmax.py](mmdet/models/losses/group_softmax.py)
+
+The newly developed portion of this program is released by the National Diet Library under a CC BY 4.0 license. For more information, see [LICENSE](./LICENSE)
+.
+
 <div align="center">
   <img src="resources/mmdet-logo.png" width="600"/>
 </div>
